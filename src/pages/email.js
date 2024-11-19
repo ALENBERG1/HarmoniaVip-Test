@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+// Usa un mock per simulare i dati degli utenti
+const supabase = {
+  from: () => ({
+    select: async () => ({
+      data: [
+        { id: 1, name: 'Mario Rossi', email: 'mario.rossi@example.com' },
+        { id: 2, name: 'Luigi Verdi', email: 'luigi.verdi@example.com' },
+      ],
+      error: null,
+    }),
+  }),
+};
+
 
 const EmailBroadcast = () => {
   const [users, setUsers] = useState([]);
@@ -17,12 +26,18 @@ const EmailBroadcast = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (!user || (user.telegramId !== '402570623' && user.telegramId !== '6868138640')) {
-        router.push('/'); // Redirect if not an authorized admin
+    const fetchUsers = async () => {
+      try {
+        const { data, error } = await supabase.from('registrations').select('id, name, email');
+        if (error) throw error;
+        setUsers(data);
+      } catch (error) {
+        console.error('Errore nel recupero degli utenti (mock):', error.message);
       }
-    }
-  }, [user, loading, router]);
+    };
+    fetchUsers();
+  }, []);
+  
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -52,40 +67,29 @@ const EmailBroadcast = () => {
   const handleSendEmails = async () => {
     setIsSending(true);
     setStatusMessage({ type: '', message: '' });
-
+  
     try {
       const selectedEmails = users.filter((user) => selectedUsers.includes(user.id));
-
+  
       for (const user of selectedEmails) {
-        const response = await fetch('/api/send-confirmation', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-token': process.env.NEXT_PUBLIC_API_SECRET_TOKEN, // Aggiungi il token API
-          },
-          body: JSON.stringify({ to: user.email, name: user.name }),
-        });
-
-        if (!response.ok) {
-          console.error(`Errore nell'invio dell'email a ${user.email}`);
-          throw new Error(`Errore nell'invio dell'email a ${user.email}`);
-        }
+        console.log(`Mock: Email inviata a ${user.email} (${user.name})`);
       }
-
+  
       setStatusMessage({
         type: 'success',
-        message: 'Email inviate correttamente a tutti gli utenti selezionati.',
+        message: 'Mock: Email inviate correttamente a tutti gli utenti selezionati.',
       });
     } catch (error) {
       setStatusMessage({
         type: 'error',
-        message: 'Si è verificato un errore durante l\'invio delle email. Riprova più tardi.',
+        message: 'Mock: Si è verificato un errore durante l\'invio delle email.',
       });
     } finally {
       setIsSending(false);
       setSelectedUsers([]);
     }
   };
+  
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#0C1A0E]">
