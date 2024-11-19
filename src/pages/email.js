@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
-// import { createClient } from '@supabase/supabase-js';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
 
-// Usa un mock per simulare i dati degli utenti
-const supabase = {
-  from: () => ({
-    select: async () => ({
-      data: [
-        { id: 1, name: 'Mario Rossi', email: 'mario.rossi@example.com' },
-        { id: 2, name: 'Luigi Verdi', email: 'luigi.verdi@example.com' },
-      ],
-      error: null,
-    }),
-  }),
-};
+// Configurazione di Supabase
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || null;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_KEY || null;
 
+let supabase = null;
+
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+} else {
+  console.warn('Supabase non è configurato. Alcune funzionalità potrebbero non funzionare.');
+}
+
+// Non esportare supabase come default
+export { supabase };
 
 const EmailBroadcast = () => {
   const [users, setUsers] = useState([]);
@@ -25,26 +26,11 @@ const EmailBroadcast = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  // Effettua il fetch degli utenti
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const { data, error } = await supabase.from('registrations').select('id, name, email');
-        if (error) throw error;
-        setUsers(data);
-      } catch (error) {
-        console.error('Errore nel recupero degli utenti (mock):', error.message);
-      }
-    };
-    fetchUsers();
-  }, []);
-  
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('registrations')
-          .select('id, name, email');
         if (error) throw error;
         setUsers(data);
       } catch (error) {
@@ -67,14 +53,14 @@ const EmailBroadcast = () => {
   const handleSendEmails = async () => {
     setIsSending(true);
     setStatusMessage({ type: '', message: '' });
-  
+
     try {
       const selectedEmails = users.filter((user) => selectedUsers.includes(user.id));
-  
+
       for (const user of selectedEmails) {
         console.log(`Mock: Email inviata a ${user.email} (${user.name})`);
       }
-  
+
       setStatusMessage({
         type: 'success',
         message: 'Mock: Email inviate correttamente a tutti gli utenti selezionati.',
@@ -82,14 +68,13 @@ const EmailBroadcast = () => {
     } catch (error) {
       setStatusMessage({
         type: 'error',
-        message: 'Mock: Si è verificato un errore durante l\'invio delle email.',
+        message: "Mock: Si è verificato un errore durante l'invio delle email.",
       });
     } finally {
       setIsSending(false);
       setSelectedUsers([]);
     }
   };
-  
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#0C1A0E]">
@@ -98,7 +83,11 @@ const EmailBroadcast = () => {
       </header>
 
       {statusMessage.message && (
-        <div className={`p-4 text-center ${statusMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white`}>
+        <div
+          className={`p-4 text-center ${
+            statusMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          } text-white`}
+        >
           {statusMessage.message}
         </div>
       )}
@@ -117,7 +106,9 @@ const EmailBroadcast = () => {
           <button
             onClick={handleSendEmails}
             disabled={isSending || selectedUsers.length === 0}
-            className={`bg-[#147939] text-white px-6 py-2 rounded-full hover:bg-green-700 transition duration-300 uppercase font-bold ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`bg-[#147939] text-white px-6 py-2 rounded-full hover:bg-green-700 transition duration-300 uppercase font-bold ${
+              isSending ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             {isSending ? 'Invio in corso...' : 'Invia Email'}
           </button>
