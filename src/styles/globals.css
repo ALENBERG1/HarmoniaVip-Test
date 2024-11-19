@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0C0C0C; /* Sfondo principale nero */
+  --foreground: #F0EDE5; /* Colore chiaro per il testo principale */
+  --accent-primary: #D4AF37; /* Colore oro per accenti */
+  --accent-secondary: #00613A; /* Verde per dettagli e pulsanti */
+  --accent-dark: #1D4D2B; /* Verde scuro per accenti e titoli */
+  --neutral-grey: #A1A0A0; /* Grigio per sfondi secondari */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0C0C0C;
+    --foreground: #F0EDE5;
+  }
+}
+
+/* Aggiunta del font Kallisto */
+@font-face {
+  font-family: 'Kallisto';
+  src: url('/fonts/fonnts.com-Kallisto_Bold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal; /* Assicura che il font non venga caricato in corsivo */
+}
+
+body {
+  color: var(--foreground); /* Colore principale del testo */
+  background: var(--background); /* Sfondo principale nero */
+  font-family: 'Kallisto', Arial, Helvetica, sans-serif;
+}
+
+/* Stili per i dettagli, utilizzando la palette di Harmonya */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--accent-primary); /* Oro per i titoli */
+}
+
+a {
+  color: var(--accent-secondary); /* Verde per i link */
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-dark); /* Verde scuro per hover sui link */
+}
+
+
+.card, .box {
+  background-color: var(--neutral-grey); /* Grigio per sfondi di box e card */
+  color: var(--foreground); /* Colore del testo in chiaro */
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
